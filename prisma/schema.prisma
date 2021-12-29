@@ -10,6 +10,61 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model User {
+  id           String        @id @default(uuid())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  email        String        @unique
+  password     String
+  firstName    String?
+  lastName     String?
+  role         Role          @default(USER)
+  transactions Transaction[]
+  accounts     Account[]
+  categories   Category[]
+}
+
+model Transaction {
+  id         String          @id @default(uuid())
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  title      String
+  note       String?
+  value      Decimal         @db.Decimal(10, 2)
+  txType     TransactionType
+  paid       Boolean         @default(false)
+  user       User            @relation(fields: [userId], references: [id])
+  userId     String
+  category   Category        @relation(fields: [categoryId], references: [id])
+  categoryId String
+  account    Account         @relation(fields: [accountId], references: [id])
+  accountId  String
+}
+
+model Category {
+  id           String        @id @default(uuid())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  name         String
+  color        String
+  catType      CategoryType
+  transactions Transaction[]
+  user         User          @relation(fields: [userId], references: [id])
+  userId       String
+}
+
+model Account {
+  id           String        @id @default(uuid())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  name         String
+  color        String
+  accType      AccountType
+  user         User          @relation(fields: [userId], references: [id])
+  userId       String
+  transactions Transaction[]
+}
+
 model Post {
   id    String @id @default(uuid())
   title String
@@ -19,4 +74,34 @@ model Post {
   // https://trpc.io/docs/data-transformers
   createdAt DateTime @unique @default(now())
   updatedAt DateTime @unique @default(now())
+}
+
+enum Role {
+  ADMIN  @map("admin")
+  USER   @map("user")
+
+  @@map("_Role")
+}
+
+enum CategoryType {
+  INCOME   @map("income")
+  EXPENSE  @map("expense")
+
+  @@map("_CategoryType")
+}
+
+enum TransactionType {
+  INCOME    @map("income")
+  EXPENSE   @map("expense")
+  TRANSFER  @map("transfer")
+
+  @@map("_TransactionType")
+}
+
+enum AccountType {
+  CHECKING  @map("checking")
+  SAVINGS   @map("savings")
+  WALLET    @map("wallet")
+
+  @@map("_AccountType")
 }
